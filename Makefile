@@ -8,7 +8,9 @@
 DEBUG = yes
 TARGET = my_crypt
 CC = gcc
-CFLAGS = -Wall -O2
+CFLAGS = -Wall -O2 -I /usr/local/include
+LDFLAGS += -L/usr/local/lib
+GCRYPT = `libgcrypt-config --cflags`
 
 ifeq ($(DEBUG), yes)
 	CFLAGS += -ggdb -DDEBUG
@@ -22,7 +24,7 @@ all:	.depend $(TARGET)
 
 
 .depend:
-	$(CC) $(CFLAGS) -M $(SRCS) >> .depend
+	$(CC) $(CFLAGS) $(GCRYPT) $(LDFLAGS) -M $(SRCS) >> .depend
 
 
 ifeq ($wildcard .depend,.depend)
