@@ -22,19 +22,83 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <getopt.h>     // Command line option
 #include <gcrypt.h>     // libgcrypt
 
 // Parts of gcrypt.h may be excluded by defining these macros
 #define GCRYPT_NO_MPI_MACROS
 #define GCRYPT_NO_DEPRECATED
+#define VERSION "v0.1"
 
+
+
+// Define a struct for command line options
+typedef struct Options {
+    char *algo          // Algorythm to use default AES256
+    char *filename;     // File to encrypt/decrypt <-----ALLOCATE
+} Opts;
 
 
 //
 // MAIN
 int main(int argc, char *argv[]) {
 
-    printf("Hello world\n");
+    Opts *opts;
+
+    printf("\nProgram starting...\n");
+    opts = parseCommandLineOpts(argc, argv);
+
 
     return 0;
-}
+} /*-*/
+
+
+
+//
+// Parse command line options
+struct Opts parseCommandLineOpts(int argc, char *argv[]) {
+
+    int opt = long_index = 0;
+
+    /** From man page **/
+
+    // Long options descriptions
+    static struct option longopts[] = {
+        {"decript", required_argument,  0,  'd'},
+        {"encrypt", required_argument, 0,   'e'},
+        {"help",    no_argument, 0  'h'},
+        {"version", no_argument,    NULL,   'V'},
+        {NULL,  0,  NULL,   0}
+    };
+
+    // Short options descriptions
+    char *shortopts = "d:e:hV";
+
+    while ((opt = getopt_long(argc, argv, shortopts, longopts, NULL)) != -1) {
+
+        switch (opt) {
+            case 'd' :
+                printf("Decrypt\n");
+                break;
+            case 'e' :
+                printf("Encrypt\n");
+                break;
+            case 'h' :
+                print_help();
+                break;
+            case 'V' :
+                print_version()
+                break;
+            default :
+                print_help();
+        }
+    }
+
+
+} /*-*/
+
+
+
+
+//
+// Print 
