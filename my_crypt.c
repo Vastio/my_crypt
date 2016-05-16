@@ -31,11 +31,16 @@
 #define VERSION "v0.1"
 
 
+// Define Algorythms
+#define AES256  1
+#define AES128  2
+
+
 
 // Define a struct for command line options
 typedef struct Options {
-    char *algo;         // Algorythm to use default AES256
-    char *filename;     // File to encrypt/decrypt <-----ALLOCATE
+    int encrypt_algo;         // Algorythm to use default AES256
+    char *filename;           // File to encrypt/decrypt <-----ALLOCATE
 } Opts;
 
 
@@ -65,6 +70,11 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
 
     int opt = 0;
     Opts *opts;
+
+    if ((opts = malloc(sizeof(struct Options))) == NULL) {
+        fprintf(stderr, "Error in memory allocation!");
+        exit(EXIT_FAILURE);
+    }
 
     /** From man page **/
 
@@ -101,6 +111,22 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
         }
     }
 
+    if (optind < argc) {
+        // Allocate space for filename
+        int num = optind++;
+        if ((opts->filename = malloc(sizeof(char) * strlen(argv[num] + 1))) == NULL) {
+            fprintf(stderr, "Error in memory allocation!");
+            exit(EXIT_FAILURE);
+        }
+
+        if (strlcpy(opts->filename, argv[num], strlen(argv[num])) > strlen(argv[num])) {
+            fprintf(stderr, "Error to copy filename");
+            exit(EXIT_FAILURE);
+        }
+    }
+    else
+        print_help();
+
     return opts;
 } /*-*/
 
@@ -113,7 +139,7 @@ void print_help(void) {
     printf("\nUsage : my_crypt [opts] filename\n\n"
     "Options: \n"
     "   -d | --decrypt ALGO:    algorythm to decrypt file.\n"
-    "   -e | --encrypt ALGO:    algorythm to encrypt file.\n"
+    "   -e | --encrypt ALGO:    algorythm to encrypt file, default options with algorythm AES256.\n"
     "   -h | --help:            print help and exit.\n"
     "   -V | --version:         print version and exit.\n"
     "\n\n"
