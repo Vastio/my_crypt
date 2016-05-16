@@ -34,9 +34,15 @@
 
 // Define a struct for command line options
 typedef struct Options {
-    char *algo          // Algorythm to use default AES256
+    char *algo;         // Algorythm to use default AES256
     char *filename;     // File to encrypt/decrypt <-----ALLOCATE
 } Opts;
+
+
+// Function declaration
+Opts* parseCommandLineOpts(int argc, char *argv[]);
+void print_help(void);
+
 
 
 //
@@ -45,9 +51,8 @@ int main(int argc, char *argv[]) {
 
     Opts *opts;
 
-    printf("\nProgram starting...\n");
     opts = parseCommandLineOpts(argc, argv);
-
+    printf("\nProgram starting...\n");
 
     return 0;
 } /*-*/
@@ -56,9 +61,10 @@ int main(int argc, char *argv[]) {
 
 //
 // Parse command line options
-struct Opts parseCommandLineOpts(int argc, char *argv[]) {
+Opts* parseCommandLineOpts(int argc, char *argv[]) {
 
-    int opt = long_index = 0;
+    int opt = 0;
+    Opts *opts;
 
     /** From man page **/
 
@@ -66,7 +72,7 @@ struct Opts parseCommandLineOpts(int argc, char *argv[]) {
     static struct option longopts[] = {
         {"decript", required_argument,  0,  'd'},
         {"encrypt", required_argument, 0,   'e'},
-        {"help",    no_argument, 0  'h'},
+        {"help",    no_argument, 0,  'h'},
         {"version", no_argument,    NULL,   'V'},
         {NULL,  0,  NULL,   0}
     };
@@ -87,18 +93,23 @@ struct Opts parseCommandLineOpts(int argc, char *argv[]) {
                 print_help();
                 break;
             case 'V' :
-                print_version()
+                printf("\n%s %s\n", argv[0], VERSION);
+                exit(0);
                 break;
             default :
                 print_help();
         }
     }
 
-
+    return opts;
 } /*-*/
 
 
 
-
 //
-// Print 
+// Print help and exit
+void print_help(void) {
+
+    printf("Ciao");
+
+} /*-*/
