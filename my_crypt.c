@@ -93,8 +93,8 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
                 print_help();
                 break;
             case 'V' :
-                printf("\n%s %s\n", argv[0], VERSION);
-                exit(0);
+                printf("\n%s %s\n\n", argv[0], VERSION);
+                exit(EXIT_SUCCESS);
                 break;
             default :
                 print_help();
@@ -110,6 +110,14 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
 // Print help and exit
 void print_help(void) {
 
-    printf("Ciao");
+    printf("\nUsage : my_crypt [opts] filename\n\n"
+    "Options: \n"
+    "   -d | --decrypt ALGO:    algorythm to decrypt file.\n"
+    "   -e | --encrypt ALGO:    algorythm to encrypt file.\n"
+    "   -h | --help:            print help and exit.\n"
+    "   -V | --version:         print version and exit.\n"
+    "\n\n"
+    );
 
+    exit(EXIT_SUCCESS);
 } /*-*/
