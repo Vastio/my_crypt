@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 #include <getopt.h>     // Command line option
 #include <gcrypt.h>     // libgcrypt
 
@@ -29,7 +30,6 @@
 #define GCRYPT_NO_MPI_MACROS
 #define GCRYPT_NO_DEPRECATED
 #define VERSION "v0.1"
-
 
 // Define Algorythms
 #define AES256  1
@@ -47,6 +47,7 @@ typedef struct Options {
 // Function declaration
 Opts* parseCommandLineOpts(int argc, char *argv[]);
 void print_help(void);
+char *insertSecKey(void);
 
 
 
@@ -55,11 +56,57 @@ void print_help(void);
 int main(int argc, char *argv[]) {
 
     Opts *opts;
+    char *seckey;
+
 
     opts = parseCommandLineOpts(argc, argv);
     printf("\nProgram starting...\n");
 
+    printf("Insert secret key to crypt/decrypt file: \n");
+    if ((seckey = insertSecKey()) == NULL) {
+        fprintf(stderr, "Error in input secret key!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%s\n", seckey);
     return 0;
+} /*-*/
+
+
+
+//
+// insert
+char *insertSecKey() {
+
+    int MAX_BUF = 10, index = 0;
+    char *seckey = NULL, *tmp = NULL, ch;
+
+    if ((seckey = (char *) malloc(MAX_BUF * sizeof(char))) == NULL) {
+        fprintf(stderr, "Error in memory allocation!");
+        exit(EXIT_FAILURE);
+    }
+
+    while (1) {
+        ch = getc(stdin);
+
+        if (ch == EOF || ch == '\n')
+            break;
+
+        // Increase the size of buffer
+        if (index == MAX_BUF) {
+            MAX_BUF += 5;
+
+            if ((tmp = (char*) realloc(seckey, MAX_BUF * sizeof(char))) == NULL) {
+                fprintf(stderr, "Error in memory allocation!");
+                exit(EXIT_FAILURE);
+            }
+
+            seckey = tmp;
+        }
+        seckey[index++] = ch;
+    }
+
+    return seckey;
 } /*-*/
 
 
@@ -71,7 +118,7 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
     int opt = 0;
     Opts *opts;
 
-    if ((opts = malloc(sizeof(struct Options))) == NULL) {
+    if ((opts = (struct Options *) malloc(sizeof(struct Options))) == NULL) {
         fprintf(stderr, "Error in memory allocation!");
         exit(EXIT_FAILURE);
     }
@@ -114,7 +161,7 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
     if (optind < argc) {
         // Allocate space for filename
         int num = optind++;
-        if ((opts->filename = malloc(sizeof(char) * strlen(argv[num] + 1))) == NULL) {
+        if ((opts->filename = (char *) malloc(sizeof(char) * strlen(argv[num] + 1))) == NULL) {
             fprintf(stderr, "Error in memory allocation!");
             exit(EXIT_FAILURE);
         }
