@@ -48,6 +48,7 @@ typedef struct Options {
 Opts* parseCommandLineOpts(int argc, char *argv[]);
 void print_help(void);
 char *insertSecKey(void);
+int initGCrypt(void);
 
 
 
@@ -58,7 +59,6 @@ int main(int argc, char *argv[]) {
     Opts *opts;
     char *seckey;
 
-
     opts = parseCommandLineOpts(argc, argv);
     printf("\nProgram starting...\n");
 
@@ -68,10 +68,29 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    printf("%s\n", seckey);
+    // Init libgcrypt
+    if (!initGCrypt())
+        exit(EXIT_FAILURE);
+
     return 0;
 } /*-*/
 
+
+//
+// Init of libgcrypt (from manual):
+// https://gnupg.org/documentation/manuals/gcrypt/Initializing-the-library.html#Initializing-the-library
+int initGCrypt(void) {
+
+    if (!gcry_check_version(GCRYPT_VERSION))
+        return 0;
+
+    gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN); // Suspend warn for secure memory
+    gcry_control(GCRYCTL_INIT_SECMEM, 32768, 0); // Allocate 32kb of secmem
+    gcry_control(GCRYCTL_RESUME_SECMEM_WARN);   // After allocation resume secmem warning
+    gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);   // Init OK
+
+    return 1;
+} /*-*/
 
 
 //
@@ -105,7 +124,6 @@ char *insertSecKey() {
         }
         seckey[index++] = ch;
     }
-
     return seckey;
 } /*-*/
 
