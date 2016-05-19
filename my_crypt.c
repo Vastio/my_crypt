@@ -40,6 +40,8 @@
 // Define a struct for command line options
 typedef struct Options {
     int encrypt_algo;         // Algorythm to use default AES256
+    int encrypt;
+    int decrypt;
     char *filename;           // File to encrypt/decrypt <-----ALLOCATE
 } Opts;
 
@@ -141,6 +143,10 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    // Default option is encrypt file
+    opts->decrypt = 0;
+    opts->encrypt = 1;
+
     /** From man page **/
 
     // Long options descriptions
@@ -159,10 +165,11 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
 
         switch (opt) {
             case 'd' :
-                printf("Decrypt\n");
+                opts->decrypt = 1;
+                opts->encrypt = 0;
                 break;
             case 'e' :
-                printf("Encrypt\n");
+                // Already defined above
                 break;
             case 'h' :
                 print_help();
