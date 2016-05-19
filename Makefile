@@ -9,8 +9,8 @@ DEBUG = yes
 TARGET = my_crypt
 CC = clang
 CFLAGS = -Wall -O2 -I /usr/local/include
-LDFLAGS += -L/usr/local/lib
-GCRYPT = `libgcrypt-config --cflags`
+GCRYPT_FLAGS = -I/usr/local/Cellar/libgcrypt/1.7.0_1/include -I/usr/local/Cellar/libgpg-error/1.22/include
+GCRYPT_LIBS = -L/usr/local/Cellar/libgcrypt/1.7.0_1/lib -lgcrypt -L/usr/local/Cellar/libgpg-error/1.22/lib -lgpg-error
 
 ifeq ($(DEBUG), yes)
 	CFLAGS += -ggdb -DDEBUG
@@ -20,19 +20,10 @@ endif
 SRCS = my_crypt.c
 
 
-all:	.depend $(TARGET)
+all:	$(TARGET)
 
-
-.depend:
-	$(CC) $(CFLAGS) $(GCRYPT) -M $(SRCS) >> .depend
-
-
-ifeq ($wildcard .depend,.depend)
-include .depend
-endif
-
-
-$(TARGET):	$(SRCS:.c=.o)
+$(TARGET):	my_crypt.o
+	$(CC) $(CFLAGS) $(SRCS) -o $(TARGET) $(GCRYPT_FLAGS) $(GCRYPT_LIBS)
 
 clean:
 		@rm -f *.o $(TARGET) .depend
