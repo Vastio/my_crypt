@@ -32,14 +32,14 @@
 #define VERSION "v0.1"
 
 // Define Algorythms
-#define AES256  1
+#define AES256  GCRY_CIPHER_AES256
 #define AES128  2
 
 
 
 // Define a struct for command line options
 typedef struct Options {
-    int encrypt_algo;         // Algorythm to use default AES256
+    int algo;                 // Algorythm to use default AES256
     int encrypt;
     int decrypt;
     char *filename;           // File to encrypt/decrypt <-----ALLOCATE
@@ -51,6 +51,7 @@ Opts* parseCommandLineOpts(int argc, char *argv[]);
 void print_help(void);
 char *insertSecKey(void);
 int initGCrypt(void);
+int gcrypt(int algo, int crypt, char *seckey);
 
 
 
@@ -64,7 +65,7 @@ int main(int argc, char *argv[]) {
     opts = parseCommandLineOpts(argc, argv);
     printf("\nProgram starting...\n");
 
-    printf("Insert secret key to crypt/decrypt file: \n");
+    printf("Insert secret key to crypt/decrypt file: ");
     if ((seckey = insertSecKey()) == NULL) {
         fprintf(stderr, "Error in input secret key!\n");
         exit(EXIT_FAILURE);
@@ -74,8 +75,37 @@ int main(int argc, char *argv[]) {
     if (!initGCrypt())
         exit(EXIT_FAILURE);
 
+    opts->algo = AES256;    // Default choice
+    if (!gcrypt(opts->algo, opts->encrypt, seckey))
+        exit(EXIT_FAILURE);
+
     return 0;
 } /*-*/
+
+
+
+//
+// Function which encrypt data
+int gcrypt(int algo, int crypt, char *seckey) {
+
+    gcry_error_t err = 0;
+    gcry_cipher_hd_t gcry_hd;
+
+    err = gcry_cipher_open(&gcry_hd, algo, GCRY_CIPHER_MODE_CFB, GCRY_CIPHER_SECURE);
+    if (err) {
+        fprintf(stderr, "Error to create context handle: %s/%s!\n", gcry_strsource(err), gcry_strerror(err));
+        return 0;
+    }
+
+    err = gcry_cipher_setkey(gcry_hd, (char*) seckey, sizeof(char) * strlen(seckey));
+    if (err) {
+        fprintf(stderr, "Error to set secret key: %s/%s!\n", gcry_strsource(err), gcry_strerror(err));
+        return 0;
+    }
+
+    return 1;
+} /*-*/
+
 
 
 //
@@ -95,8 +125,9 @@ int initGCrypt(void) {
 } /*-*/
 
 
+
 //
-// insert
+// Insert secret key
 char *insertSecKey() {
 
     int MAX_BUF = 10, index = 0;
@@ -210,8 +241,8 @@ void print_help(void) {
 
     printf("\nUsage : my_crypt [opts] filename\n\n"
     "Options: \n"
-    "   -d | --decrypt ALGO:    algorythm to decrypt file.\n"
-    "   -e | --encrypt ALGO:    algorythm to encrypt file, default options with algorythm AES256.\n"
+    "   -d | --decrypt ALGO:    algorythm to decrypt file: only AES256\n"
+    "   -e | --encrypt ALGO:    algorythm to encrypt file: only AES256.\n"
     "   -h | --help:            print help and exit.\n"
     "   -V | --version:         print version and exit.\n"
     "\n\n"
