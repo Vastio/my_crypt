@@ -26,12 +26,14 @@
 #include <getopt.h>     // Command line option
 #include <gcrypt.h>     // libgcrypt
 
+
 // Parts of gcrypt.h may be excluded by defining these macros
 #define GCRYPT_NO_MPI_MACROS
 #define GCRYPT_NO_DEPRECATED
 #define VERSION "v0.1"
 
-// Define Algorythms
+
+// Supported Algorythms
 #define AES256  GCRY_CIPHER_AES256
 #define AES128  GCRY_CIPHER_AES128
 
@@ -75,7 +77,6 @@ int main(int argc, char *argv[]) {
     if (!initGCrypt())
         exit(EXIT_FAILURE);
 
-    opts->algo = AES128;    // Default choice
     if (!gcrypt(opts->algo, opts->encrypt, seckey))
         exit(EXIT_FAILURE);
 
@@ -87,30 +88,6 @@ int main(int argc, char *argv[]) {
 //
 // Function which encrypt data
 int gcrypt(int algo, int crypt, char *seckey) {
-
-    gcry_error_t err = 0;
-    gcry_cipher_hd_t gcry_hd;
-    size_t key_len;
-
-    // Calclate length of the key
-    if ((key_len = gcry_cipher_get_algo_keylen(algo)) == 0) {
-        fprintf(stderr, "Unable to get keylen!\n");
-        return 0;
-    }
-
-    // Open handle for gcrypt
-    err = gcry_cipher_open(&gcry_hd, algo, GCRY_CIPHER_MODE_CBC, GCRY_CIPHER_SECURE);
-    if (err) {
-        fprintf(stderr, "Error to create context handle: %s - %s!\n", gcry_strsource(err), gcry_strerror(err));
-        return 0;
-    }
-
-    // Set gcrypt secret key
-    err = gcry_cipher_setkey(gcry_hd, seckey, key_len);
-    if (err) {
-        fprintf(stderr, "Error to set secret key: %s - %s!\n", gcry_strsource(err), gcry_strerror(err));
-        return 0;
-    }
 
     return 1;
 } /*-*/
@@ -250,10 +227,11 @@ void print_help(void) {
 
     printf("\nUsage : my_crypt [opts] filename\n\n"
     "Options: \n"
-    "   -d | --decrypt ALGO:    algorythm to decrypt file: only AES256\n"
-    "   -e | --encrypt ALGO:    algorythm to encrypt file: only AES256.\n"
+    "   -d | --decrypt ALGO:    algorythm to decrypt file.\n"
+    "   -e | --encrypt ALGO:    algorythm to encrypt file.\n"
     "   -h | --help:            print help and exit.\n"
-    "   -V | --version:         print version and exit.\n"
+    "   -V | --version:         print version and exit.\n\n"
+    "Supported algorythms: AES128, AES256\n\n"
     "\n\n"
     );
 
