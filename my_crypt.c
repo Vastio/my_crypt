@@ -96,7 +96,21 @@ int main(int argc, char *argv[]) {
 // Function which encrypt/decrypt data
 int gcrypt(int algo, int crypt, char *seckey) {
 
+    gcry_cipher_hd_t gcry_hd;
+    gcry_error_t err = 0;
+    size_t seckey_len = gcry_cipher_get_algo_keylen(algo);
 
+    err = gcry_cipher_open(&gcry_hd, algo, GCRY_CIPHER_MODE_CBC, GCRY_CIPHER_SECURE);
+    if (err) {
+        fprintf(stderr, "Error to init cipher handle: %s - %s\n", gcry_strerror(err), gcry_strsource(err));
+        return 0;
+    }
+
+    err = gcry_cipher_setkey(gcry_hd, seckey, seckey_len);
+    if (err) {
+        fprintf(stderr, "Error to set secret key: %s - %s\n", gcry_strerror(err), gcry_strsource(err));
+        return 0;
+    }
 
     return 1;
 } /*-*/
@@ -218,12 +232,12 @@ void print_help(void) {
 
     printf("\nUsage : my_crypt [opts] filename\n\n"
     "Options: \n"
-    "   -d | --decrypt ALGO:    algorythm to decrypt file.\n"
-    "   -e | --encrypt ALGO:    algorythm to encrypt file.\n"
+    "   -d | --decrypt ALGO:    set algorythm to decrypt file.\n"
+    "   -e | --encrypt ALGO:    set algorythm to encrypt file.\n"
     "   -h | --help:            print help and exit.\n"
     "   -V | --version:         print version and exit.\n\n"
     "Supported algorythms: AES128, AES256\n\n"
-    "\n\n"
+    "\n"
     );
 
     exit(EXIT_SUCCESS);
