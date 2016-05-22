@@ -52,7 +52,6 @@ typedef struct Options {
 Opts* parseCommandLineOpts(int argc, char *argv[]);
 void print_help(void);
 char *insertSecKey(void);
-int initGCrypt(void);
 int gcrypt(int algo, int crypt, char *seckey);
 
 
@@ -74,8 +73,16 @@ int main(int argc, char *argv[]) {
     }
 
     // Init libgcrypt
-    if (!initGCrypt())
+    // https://gnupg.org/documentation/manuals/gcrypt/Initializing-the-library.html#Initializing-the-library
+    if (!gcry_check_version(GCRYPT_VERSION)) {
+        fprintf(stderr, "Error in libgcrypt: check version error!\n");
         exit(EXIT_FAILURE);
+    }
+
+    gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN); // Suspend warn for secure memory
+    gcry_control(GCRYCTL_INIT_SECMEM, 32768, 0); // Allocate 32kb of secmem
+    gcry_control(GCRYCTL_RESUME_SECMEM_WARN);   // After allocation resume secmem warning
+    gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);   // Init OK
 
     if (!gcrypt(opts->algo, opts->encrypt, seckey))
         exit(EXIT_FAILURE);
@@ -86,26 +93,10 @@ int main(int argc, char *argv[]) {
 
 
 //
-// Function which encrypt data
+// Function which encrypt/decrypt data
 int gcrypt(int algo, int crypt, char *seckey) {
 
-    return 1;
-} /*-*/
 
-
-
-//
-// Init of libgcrypt (from manual):
-// https://gnupg.org/documentation/manuals/gcrypt/Initializing-the-library.html#Initializing-the-library
-int initGCrypt(void) {
-
-    if (!gcry_check_version(GCRYPT_VERSION))
-        return 0;
-
-    gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN); // Suspend warn for secure memory
-    gcry_control(GCRYCTL_INIT_SECMEM, 32768, 0); // Allocate 32kb of secmem
-    gcry_control(GCRYCTL_RESUME_SECMEM_WARN);   // After allocation resume secmem warning
-    gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);   // Init OK
 
     return 1;
 } /*-*/
