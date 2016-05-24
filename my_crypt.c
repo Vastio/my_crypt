@@ -44,6 +44,7 @@ typedef struct Options {
     int algo;                 // Algorythm to use default AES256
     int encrypt;
     int decrypt;
+    char *initVector;
     char *filename;           // File to encrypt/decrypt <-----ALLOCATE
 } Opts;
 
@@ -84,6 +85,7 @@ int main(int argc, char *argv[]) {
     gcry_control(GCRYCTL_RESUME_SECMEM_WARN);   // After allocation resume secmem warning
     gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);   // Init OK
 
+    // Crypt/decrypt function
     if (!gcrypt(opts->algo, opts->encrypt, seckey))
         exit(EXIT_FAILURE);
 
@@ -111,6 +113,8 @@ int gcrypt(int algo, int crypt, char *seckey) {
         fprintf(stderr, "Error to set secret key: %s - %s\n", gcry_strerror(err), gcry_strsource(err));
         return 0;
     }
+
+    //err = grcy_cipher_setiv(gcry_hd, )
 
     return 1;
 } /*-*/
@@ -143,7 +147,6 @@ char *insertSecKey() {
                 fprintf(stderr, "Error in memory allocation!");
                 exit(EXIT_FAILURE);
             }
-
             seckey = tmp;
         }
         seckey[index++] = ch;
@@ -176,12 +179,13 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
         {"decript", required_argument,  0,  'd'},
         {"encrypt", required_argument, 0,   'e'},
         {"help",    no_argument, 0,  'h'},
+        {"init-vector", required_argument, 0, 'I'},
         {"version", no_argument,    NULL,   'V'},
         {NULL,  0,  NULL,   0}
     };
 
     // Short options descriptions
-    char *shortopts = "d:e:hV";
+    char *shortopts = "d:e:hI:V";
 
     while ((opt = getopt_long(argc, argv, shortopts, longopts, NULL)) != -1) {
 
@@ -195,6 +199,13 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
                 break;
             case 'h' :
                 print_help();
+                break;
+            case 'I' :
+                if ((opts->initVector = (char *) malloc(sizeof(char) * strlen(optarg + 1))) == NULL) {
+                    fprintf(stderr, "Error in memory allocation!");
+                    exit(EXIT_FAILURE);
+                }
+                strlcpy(opts->initVector, optarg, sizeof(opts->initVector));
                 break;
             case 'V' :
                 printf("\n%s %s\n\n", argv[0], VERSION);
@@ -212,11 +223,7 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
             fprintf(stderr, "Error in memory allocation!");
             exit(EXIT_FAILURE);
         }
-
-        if (strlcpy(opts->filename, argv[num], strlen(argv[num])) > strlen(argv[num])) {
-            fprintf(stderr, "Error to copy filename");
-            exit(EXIT_FAILURE);
-        }
+        strlcpy(opts->filename, argv[num], sizeof(opts->filename));
     }
     else
         print_help();
@@ -235,6 +242,7 @@ void print_help(void) {
     "   -d | --decrypt ALGO:    set algorythm to decrypt file.\n"
     "   -e | --encrypt ALGO:    set algorythm to encrypt file.\n"
     "   -h | --help:            print help and exit.\n"
+    "   -I | --init-vector:     define an inizialization vector.\n"
     "   -V | --version:         print version and exit.\n\n"
     "Supported algorythms: AES128, AES256\n\n"
     "\n"
