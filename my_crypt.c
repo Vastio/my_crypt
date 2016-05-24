@@ -168,9 +168,10 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Default option is encrypt file
+    // Setting default options
     opts->decrypt = 0;
     opts->encrypt = 1;
+    opts->initVector = NULL;
 
     /** From man page **/
 
