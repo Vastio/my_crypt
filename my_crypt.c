@@ -101,6 +101,7 @@ int gcrypt(int algo, int crypt, char *seckey) {
     gcry_cipher_hd_t gcry_hd;
     gcry_error_t err = 0;
     size_t seckey_len = gcry_cipher_get_algo_keylen(algo);
+	size_t iv_len = gcry_cipher_get_algo_blklen(algo);	// Used for function grcy_cipher_setiv()
 
     err = gcry_cipher_open(&gcry_hd, algo, GCRY_CIPHER_MODE_CBC, GCRY_CIPHER_SECURE);
     if (err) {
@@ -114,7 +115,24 @@ int gcrypt(int algo, int crypt, char *seckey) {
         return 0;
     }
 
-    //err = grcy_cipher_setiv(gcry_hd, )
+	// Setting init vector
+	if (opts->initVector != NULL) {
+		err = grcy_cipher_setiv(gcry_hd, initVector, iv_len);
+		if (err) {
+     	   fprintf(stderr, "Error to set init vector: %s - %s\n", gcry_strerror(err), gcry_strsource(err));
+     	   return 0;
+    	}
+	}
+
+	/*
+ 	 * Crypt/Decrypt
+	 */
+	if (crypt) {
+		err = gcry_cipher_encrypt(gcry_hd, );
+	}
+	else {
+	}
+	
 
     return 1;
 } /*-*/
