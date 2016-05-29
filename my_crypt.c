@@ -206,7 +206,7 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
                     fprintf(stderr, "Error in memory allocation!");
                     exit(EXIT_FAILURE);
                 }
-                strlcpy(opts->initVector, optarg, sizeof(opts->initVector));
+                strncpy(opts->initVector, optarg, strlen(opts->initVector));
                 break;
             case 'V' :
                 printf("\n%s %s\n\n", argv[0], VERSION);
@@ -224,7 +224,7 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
             fprintf(stderr, "Error in memory allocation!");
             exit(EXIT_FAILURE);
         }
-        strlcpy(opts->filename, argv[num], sizeof(opts->filename));
+        strncpy(opts->filename, argv[num], strlen(opts->filename));
     }
     else
         print_help();
