@@ -114,7 +114,6 @@ int gcrypt(int algo, int crypt, char *seckey) {
         return 0;
     }
 
-	// Setting init table
     //err = grcy_cipher_setiv(gcry_hd, )
 
     return 1;
