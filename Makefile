@@ -6,11 +6,18 @@
 #######################
 
 DEBUG = yes
+OS_TYPE = $(shell uname -s)
 TARGET = my_crypt
 CC = clang
 CFLAGS = -Wall -O2 -I /usr/local/include
-GCRYPT_FLAGS = -I/usr/local/Cellar/libgcrypt/1.7.0_1/include -I/usr/local/Cellar/libgpg-error/1.22/include
-GCRYPT_LIBS = -L/usr/local/Cellar/libgcrypt/1.7.0_1/lib -lgcrypt -L/usr/local/Cellar/libgpg-error/1.22/lib -lgpg-error
+
+ifeq ($(OS_TYPE), Linux)
+	GCRYPT_FLAGS = 
+	GCRYPT_LIBS = -lgcrypt
+else ifeq ($(OS_TYPE), Darwin)
+	GCRYPT_FLAGS = -I/usr/local/Cellar/libgcrypt/1.7.0_1/include -I/usr/local/Cellar/libgpg-error/1.22/include
+	GCRYPT_LIBS = -L/usr/local/Cellar/libgcrypt/1.7.0_1/lib -lgcrypt -L/usr/local/Cellar/libgpg-error/1.22/lib -lgpg-error
+endif
 
 ifeq ($(DEBUG), yes)
 	CFLAGS += -ggdb -DDEBUG
