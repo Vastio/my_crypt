@@ -49,8 +49,8 @@ void print_help(void);
 
 
 /* ********** *
- *    MAIN    *
- **************/
+*    MAIN    *
+**************/
 int main(int argc, char *argv[]) {
 
     Opts *opts;
@@ -59,23 +59,108 @@ int main(int argc, char *argv[]) {
     printf("\nProgram starting...\n");
 
     return 0;
- } /*-*/
+} /*-*/
 
 
- //
- // Print help and exit
- void print_help(void) {
 
-     printf("\nUsage : my_crypt [opts] filename\n\n"
-     "Options: \n"
-     "   -d | --decrypt:         set decryption file.\n"
-     "   -e | --encrypt ALGO:    set algorythm to encrypt file.\n"
-     "   -h | --help:            print help and exit.\n"
-     "   -I | --init-vector:     define an inizialization vector.\n"
-     "   -V | --version:         print version and exit.\n\n"
-     "Supported algorythms: AES128, AES256\n\n"
-     "\n"
-     );
+//
+// Parse command line options
+Opts* parseCommandLineOpts(int argc, char *argv[]) {
 
-     exit(EXIT_SUCCESS);
- } /*-*/
+    int n, opt = 0;
+    Opts *opts;
+
+    if ((opts = (struct Options *) malloc(sizeof(struct Options))) == NULL) {
+        fprintf(stderr, "Error in memory allocation!");
+        exit(EXIT_FAILURE);
+    }
+
+    // Setting default options
+    opts->decrypt = 0;
+    opts->encrypt = 1;
+    opts->initVector = NULL;
+
+    /** From man page **/
+
+    // Long options descriptions
+    static struct option longopts[] = {
+        {"decript", required_argument,  0,  'd'},
+        {"encrypt", required_argument, 0,   'e'},
+        {"help",    no_argument, 0,  'h'},
+        {"init-vector", required_argument, 0, 'I'},
+        {"version", no_argument,    NULL,   'V'},
+        {NULL,  0,  NULL,   0}
+    };
+
+    // Short options descriptions
+    char *shortopts = "d:e:hI:V";
+
+    while ((opt = getopt_long(argc, argv, shortopts, longopts, NULL)) != -1) {
+
+        switch (opt) {
+            case 'd' :
+                opts->decrypt = 1;
+                opts->encrypt = 0;
+                break;
+            case 'e' :
+                // Already defined above
+                break;
+            case 'h' :
+                print_help();
+                break;
+            case 'I' :
+                if ((opts->initVector = (char *) malloc(sizeof(char) * (strlen(optarg) + 1))) == NULL) {
+                    fprintf(stderr, "Error in memory allocation!");
+                    exit(EXIT_FAILURE);
+                }
+                n = strlcpy(opts->initVector, optarg, sizeof(opts->initVector));
+                if (n > sizeof(opts->initVector)) {
+                    fprintf(stderr, "Error to copy name: too long!\n");
+                    exit(EXIT_FAILURE);
+                }
+                printf("IV: %s %s\n", opts->initVector, optarg);
+                exit(1);
+                break;
+            case 'V' :
+                printf("\n%s %s\n\n", argv[0], VERSION);
+                exit(EXIT_SUCCESS);
+                break;
+            default :
+                print_help();
+        }
+    }
+
+    if (optind < argc) {
+        // Allocate space for filename
+        int num = optind++;
+        if ((opts->filename = (char *) malloc(sizeof(char) * strlen(argv[num]) + 1)) == NULL) {
+            fprintf(stderr, "Error in memory allocation!");
+            exit(EXIT_FAILURE);
+        }
+        n = strlcpy(opts->filename, argv[num], sizeof(opts->filename));
+    }
+    else
+        print_help();
+
+    return opts;
+} /*-*/
+
+
+
+//
+// Print help and exit
+void print_help(void) {
+
+    printf("\nUsage : my_crypt [opts] filename\n\n"
+    "Options: \n"
+    "   -d | --decrypt:         set decryption file.\n"
+    "   -e | --encrypt ALGO:    set algorythm to encrypt file.\n"
+    "   -h | --help:            print help and exit.\n"
+    "   -I | --init-vector:     define an inizialization vector.\n"
+    "   -V | --version:         print version and exit.\n\n"
+    "Supported algorythms: AES128, AES256\n\n"
+    "\n"
+    );
+
+    exit(EXIT_SUCCESS);
+} /*-*/
