@@ -28,7 +28,15 @@
 #include <gcrypt.h>     // libgcrypt
 
 
-#define version "v0.1"
+#define VERSION "v0.1"
+
+// Parts of gcrypt.h may be excluded by defining these macros
+#define GCRYPT_NO_MPI_MACROS
+#define GCRYPT_NO_DEPRECATED
+
+// Supported Algorythms
+#define AES256  GCRY_CIPHER_AES256
+#define AES128  GCRY_CIPHER_AES128
 
 
 // Define a struct for command line options
