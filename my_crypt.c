@@ -24,6 +24,7 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <getopt.h>     // Command line option
 #include <gcrypt.h>     // libgcrypt
 
@@ -52,6 +53,7 @@ typedef struct Options {
 // Function declaration
 Opts* parseCommandLineOpts(int argc, char *argv[]);
 void print_help(void);
+char* getTextFromFile(char *filename);
 
 
 
@@ -62,11 +64,51 @@ void print_help(void);
 int main(int argc, char *argv[]) {
 
     Opts *opts;
+    char *text;
 
     opts = parseCommandLineOpts(argc, argv);
     printf("\nProgram starting...\n");
 
+    // Extract text from filename
+    text = getTextFromFile(opts->filename);
+
     return 0;
+} /*-*/
+
+
+
+//
+// Extract text from the file
+char* getTextFromFile(char *filename) {
+
+    int fd;
+    long file_size;
+    struct stat st;
+    char *text, error_buf[BUFSIZ];
+
+    if ((fd = open(filename, O_RDONLY)) < 0) {
+        strerror_r(errno, error_buf, BUFSIZ);
+        fprintf(stderr, "Error to open file %s: %s\n", filename, error_buf);
+        exit(EXIT_FAILURE);
+    }
+
+    // Check the size of the file
+    if (fstat(fd, &st) < 0) {
+        strerror_r(errno, error_buf, BUFSIZ);
+        fprintf(stderr, "Error to  obtain info for file %s: %s\n", filename, error_buf);
+        exit(EXIT_FAILURE);
+    }
+    file_size = st.st_size;
+
+    printf("File size: %ld", file_size);
+    // Allocate memory for var where store file content
+    if ((text = (char *) malloc(sizeof(char) * file_size)) == NULL) {
+        fprintf(stderr, "Error to allocate memory!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    close(fd);
+    return text;
 } /*-*/
 
 
