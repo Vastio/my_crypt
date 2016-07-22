@@ -82,9 +82,8 @@ int main(int argc, char *argv[]) {
 char* getTextFromFile(char *filename) {
 
     int fd;
-    long file_size;
     struct stat st;
-    char *text, error_buf[BUFSIZ];
+    char *text = NULL, error_buf[BUFSIZ];
 
     if ((fd = open(filename, O_RDONLY)) < 0) {
         strerror_r(errno, error_buf, BUFSIZ);
@@ -98,15 +97,18 @@ char* getTextFromFile(char *filename) {
         fprintf(stderr, "Error to  obtain info for file %s: %s\n", filename, error_buf);
         exit(EXIT_FAILURE);
     }
-    file_size = st.st_size;
 
-    printf("File size: %ld", file_size);
     // Allocate memory for var where store file content
-    if ((text = (char *) malloc(sizeof(char) * file_size)) == NULL) {
+    if ((text = (char *) malloc(sizeof(char) * st.st_size)) == NULL) {
         fprintf(stderr, "Error to allocate memory!\n");
         exit(EXIT_FAILURE);
     }
 
+    if (read(fd, (char *) text, st.st_size) < 0) {
+        strerror_r(errno, error_buf, BUFSIZ);
+        fprintf(stderr, "Unable to read file: %s\n", error_buf);
+        exit(EXIT_FAILURE);
+    }
     close(fd);
     return text;
 } /*-*/
@@ -117,7 +119,7 @@ char* getTextFromFile(char *filename) {
 // Parse command line options
 Opts* parseCommandLineOpts(int argc, char *argv[]) {
 
-    int n, opt = 0;
+    int opt = 0;
     Opts *opts;
 
     if ((opts = (struct Options *) malloc(sizeof(struct Options))) == NULL) {
@@ -159,17 +161,7 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
                 print_help();
                 break;
             case 'I' :
-                if ((opts->initVector = (char *) malloc(sizeof(char) * (strlen(optarg) + 1))) == NULL) {
-                    fprintf(stderr, "Error in memory allocation!");
-                    exit(EXIT_FAILURE);
-                }
-                n = strlcpy(opts->initVector, optarg, sizeof(opts->initVector));
-                if (n > sizeof(opts->initVector)) {
-                    fprintf(stderr, "Error to copy name: too long!\n");
-                    exit(EXIT_FAILURE);
-                }
-                printf("IV: %s %s\n", opts->initVector, optarg);
-                exit(1);
+                printf("-> To define <-\n");
                 break;
             case 'V' :
                 printf("\n%s %s\n\n", argv[0], VERSION);
@@ -183,11 +175,11 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
     if (optind < argc) {
         // Allocate space for filename
         int num = optind++;
-        if ((opts->filename = (char *) malloc(sizeof(char) * strlen(argv[num]) + 1)) == NULL) {
+        if ((opts->filename = (char *) malloc(sizeof(char *) * strlen(argv[num]) + 1)) == NULL) {
             fprintf(stderr, "Error in memory allocation!");
             exit(EXIT_FAILURE);
         }
-        n = strlcpy(opts->filename, argv[num], sizeof(opts->filename));
+        strncat(opts->filename, argv[num], sizeof(opts->filename));
     }
     else
         print_help();
@@ -206,7 +198,7 @@ void print_help(void) {
     "   -d | --decrypt:         set decryption file.\n"
     "   -e | --encrypt ALGO:    set algorythm to encrypt file.\n"
     "   -h | --help:            print help and exit.\n"
-    "   -I | --init-vector:     define an inizialization vector.\n"
+    "   -I | --init-vector:     define an inizialization vector. ToDo\n"
     "   -V | --version:         print version and exit.\n\n"
     "Supported algorythms: AES128, AES256\n\n"
     "\n"
