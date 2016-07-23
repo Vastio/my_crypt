@@ -24,6 +24,7 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <getopt.h>     // Command line option
 #include <gcrypt.h>     // libgcrypt
@@ -65,7 +66,7 @@ char* getSecKey(void);
 int main(int argc, char *argv[]) {
 
     Opts *opts;
-    char *text;
+    char *text, *seckey;
 
     opts = parseCommandLineOpts(argc, argv);
     printf("\nProgram starting...\n");
@@ -222,7 +223,7 @@ Opts* parseCommandLineOpts(int argc, char *argv[]) {
             fprintf(stderr, "Error in memory allocation!");
             exit(EXIT_FAILURE);
         }
-        strncat(opts->filename, argv[num], sizeof(opts->filename));
+        strncat(opts->filename, argv[num], (size_t) sizeof(opts->filename));
     }
     else
         print_help();
