@@ -77,10 +77,22 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    printf("%s\n", seckey);
+  	// Init libgcrypt
+    if (!gcry_check_version(GCRYPT_VERSION)) {
+        fprintf(stderr, "Error in libgcrypt: check version error!\n");
+        exit(EXIT_FAILURE);
+    }
+
+	// Options for gcrypt
+    gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN); 			// Suspend warn for secure memory
+    gcry_control(GCRYCTL_INIT_SECMEM, 32768, 0); 		// Allocate 32kb of secmem
+    gcry_control(GCRYCTL_RESUME_SECMEM_WARN);   		// After allocation resume secmem warning
+    gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);   // Init OK
 
     // Extract text from filename
     text = getTextFromFile(opts->filename);
+	
+	printf("%s\n", text);
 
     return 0;
 } /*-*/
