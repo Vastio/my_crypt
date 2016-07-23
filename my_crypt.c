@@ -128,6 +128,7 @@ char* getTextFromFile(char *filename) {
 //
 // 
 char* getSecKey(void) {
+
 	int MAX_BUF = 25, index = 0;
     char *seckey = NULL, *tmp = NULL, ch;
 
@@ -137,8 +138,10 @@ char* getSecKey(void) {
     }
 
     while (1) {
-        ch = getc(stdin);
-
+	
+		// 0 is the descriptor of stdin	
+		read(0, &ch, sizeof(char) * 1);		
+		
         if (ch == EOF || ch == '\n')
             break;
 
