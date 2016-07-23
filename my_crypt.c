@@ -54,13 +54,14 @@ typedef struct Options {
 Opts* parseCommandLineOpts(int argc, char *argv[]);
 void print_help(void);
 char* getTextFromFile(char *filename);
+char* getSecKey(void);
 
 
 
 
 /* ********** *
-*    MAIN    *
-**************/
+ *    MAIN    *
+ **************/
 int main(int argc, char *argv[]) {
 
     Opts *opts;
@@ -68,6 +69,14 @@ int main(int argc, char *argv[]) {
 
     opts = parseCommandLineOpts(argc, argv);
     printf("\nProgram starting...\n");
+
+	printf("Insert secret key to crypt/decrypt file: \n");
+	if ((seckey = getSecKey()) == NULL) {
+		fprintf(stderr, "Error in input secret key!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("%s\n", seckey);
 
     // Extract text from filename
     text = getTextFromFile(opts->filename);
@@ -111,6 +120,40 @@ char* getTextFromFile(char *filename) {
     }
     close(fd);
     return text;
+} /*-*/
+
+
+
+//
+// 
+char* getSecKey(void) {
+	int MAX_BUF = 25, index = 0;
+    char *seckey = NULL, *tmp = NULL, ch;
+
+    if ((seckey = (char *) malloc(MAX_BUF * sizeof(char))) == NULL) {
+        fprintf(stderr, "Error in memory allocation!");
+        exit(EXIT_FAILURE);
+    }
+
+    while (1) {
+        ch = getc(stdin);
+
+        if (ch == EOF || ch == '\n')
+            break;
+
+        // Increase the size of buffer
+        if (index == MAX_BUF) {
+            MAX_BUF += 5;
+
+            if ((tmp = (char*) realloc(seckey, MAX_BUF * sizeof(char))) == NULL) {
+                fprintf(stderr, "Error in memory allocation!");
+                exit(EXIT_FAILURE);
+            }
+            seckey = tmp;
+        }
+        seckey[index++] = ch;
+    }
+    return seckey;
 } /*-*/
 
 
