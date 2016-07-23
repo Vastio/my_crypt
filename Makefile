@@ -8,7 +8,7 @@
 DEBUG = yes
 OS_TYPE = $(shell uname -s)
 TARGET = my_crypt
-CC = clang
+CC = gcc
 CFLAGS = -Wall -O2 -I /usr/local/include
 
 ifeq ($(OS_TYPE), Linux)
