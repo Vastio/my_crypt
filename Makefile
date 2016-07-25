@@ -8,8 +8,13 @@
 DEBUG = yes
 OS_TYPE = $(shell uname -s)
 TARGET = my_crypt
+<<<<<<< Updated upstream
 CC = gcc
 CFLAGS = -Wall -O2 -I /usr/local/include
+=======
+CC = clang
+CFLAGS = -Wall -std=c99 -O2 -Os -I /usr/local/include
+>>>>>>> Stashed changes
 
 ifeq ($(OS_TYPE), Linux)
 	GCRYPT_FLAGS =
