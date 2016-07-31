@@ -56,6 +56,7 @@ Opts* parseCommandLineOpts(int argc, char *argv[]);
 void print_help(void);
 char* getTextFromFile(char *filename);
 char* getSecKey(void);
+char* aesGcrypt(int algo, int crypt, char *seckey, char *text, char *initVector);
 
 
 
@@ -91,10 +92,26 @@ int main(int argc, char *argv[]) {
 
     // Extract text from filename
     text = getTextFromFile(opts->filename);
-	
-	printf("%s\n", text);
+
+    if (aesGcrypt() == NULL) {
+        fprintf(stderr, "Error to crypt/decrypt file %s\n", opts->filename);
+        exit(EXIT_FAILURE);
+    }
 
     return 0;
+} /*-*/
+
+
+
+//
+// Crypt text with AES256
+char* aesGcrypt(int algo, int crypt, char *seckey, char *text, char *initVector) {
+
+    char *crypt_text = NULL;
+
+
+
+    return crypt_text;
 } /*-*/
 
 
@@ -138,7 +155,7 @@ char* getTextFromFile(char *filename) {
 
 
 //
-// 
+//
 char* getSecKey(void) {
 
 	int MAX_BUF = 25, index = 0;
@@ -150,10 +167,10 @@ char* getSecKey(void) {
     }
 
     while (1) {
-	
-		// 0 is the descriptor of stdin	
-		read(0, &ch, sizeof(char) * 1);		
-		
+
+		// 0 is the descriptor of stdin
+		read(0, &ch, sizeof(char) * 1);
+
         if (ch == EOF || ch == '\n')
             break;
 
