@@ -38,8 +38,7 @@
 
 // Supported Algorythms
 #define AES256  GCRY_CIPHER_AES256
-#define AES128  GCRY_CIPHER_AES128
-
+#define AES256_BLOCK_SIZE   16
 
 // Define a struct for command line options
 typedef struct Options {
@@ -93,7 +92,7 @@ int main(int argc, char *argv[]) {
     // Extract text from filename
     clean_text = getTextFromFile(opts->filename);
 
-    if (aesGcrypt(opts->algo, opts->encrypt, seckey, clean_text, NULL) == NULL) {
+    if (aesGcrypt(AES256, opts->encrypt, seckey, clean_text, NULL) == NULL) {
         fprintf(stderr, "Error to crypt/decrypt file %s\n", opts->filename);
         exit(EXIT_FAILURE);
     }
@@ -112,17 +111,41 @@ char* aesGcrypt(int algo, int crypt, char *seckey, char *clean_text, char *initV
     gcry_cipher_hd_t gcry_hd;
 
     size_t seckey_len = gcry_cipher_get_algo_keylen(algo);
+    size_t iv_len = gcry_cipher_get_algo_blklen(algo);	// Used for function grcy_cipher_setiv()
 
     err = gcry_cipher_open(&gcry_hd, algo, GCRY_CIPHER_MODE_CBC, GCRY_CIPHER_SECURE);
     if (err) {
         fprintf(stderr, "Error to init cipher handle: %s - %s\n", gcry_strerror(err), gcry_strsource(err));
-        return 0;
+        return NULL;
     }
 
     err = gcry_cipher_setkey(gcry_hd, seckey, seckey_len);
     if (err) {
         fprintf(stderr, "Error to set secret key: %s - %s\n", gcry_strerror(err), gcry_strsource(err));
-        return 0;
+        return NULL;
+    }
+
+    //
+    // Here init vector initialization
+    // TODO
+
+    // Allocate space for cipher text
+    if ((crypt_text = malloc(strlen(clean_text) * AES256_BLOCK_SIZE)) == NULL) {
+        fprintf(stderr, "Error to allocate memory!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (crypt) {
+        // Encryption
+        err = gcry_cipher_encrypt(gcry_hd, crypt_text, strlen(clean_text) * AES256_BLOCK_SIZE, NULL, 0);
+        if (err) {
+            fprintf(stderr, "Error to encrypt data: %s - %s\n", gcry_strerror(err), gcry_strsource(err));
+            return NULL;
+        }
+        printf("%s\n", crypt_text);
+    }
+    else {
+        printf("Decrypt");
     }
 
     return crypt_text;
@@ -289,8 +312,9 @@ void print_help(void) {
     "   -e | --encrypt ALGO:    set algorythm to encrypt file.\n"
     "   -h | --help:            print help and exit.\n"
     "   -I | --init-vector:     define an inizialization vector. ToDo\n"
+    "   -k | --key:             generate key to decrypt file. ToDo\n"
     "   -V | --version:         print version and exit.\n\n"
-    "Supported algorythms: AES128, AES256\n\n"
+    "Supported algorythms: AES256.\n\n"
     "\n"
     );
 
