@@ -142,12 +142,12 @@ char* aesGcrypt(int algo, int crypt, char *seckey, char *clean_text, char *initV
             fprintf(stderr, "Error to encrypt data: %s - %s\n", gcry_strerror(err), gcry_strsource(err));
             return NULL;
         }
-        printf("%s\n", crypt_text);
+        return crypt_text;
     }
     else {
         printf("Decrypt");
     }
-
+    
     return crypt_text;
 } /*-*/
 
