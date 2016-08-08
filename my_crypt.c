@@ -67,7 +67,7 @@ char* aesGcrypt(int algo, int crypt, char *seckey, char *text, char *initVector)
 int main(int argc, char *argv[]) {
 
     Opts *opts;
-    char *text, *seckey;
+    char *clean_text, *seckey;
 
     opts = parseCommandLineOpts(argc, argv);
     printf("\nProgram starting...\n");
@@ -91,9 +91,9 @@ int main(int argc, char *argv[]) {
     gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);   // Init OK
 
     // Extract text from filename
-    text = getTextFromFile(opts->filename);
+    clean_text = getTextFromFile(opts->filename);
 
-    if (aesGcrypt() == NULL) {
+    if (aesGcrypt(opts->algo, opts->encrypt, seckey, clean_text, NULL) == NULL) {
         fprintf(stderr, "Error to crypt/decrypt file %s\n", opts->filename);
         exit(EXIT_FAILURE);
     }
@@ -104,12 +104,26 @@ int main(int argc, char *argv[]) {
 
 
 //
-// Crypt text with AES256
-char* aesGcrypt(int algo, int crypt, char *seckey, char *text, char *initVector) {
+// Crypt/decrypt text with AES256
+char* aesGcrypt(int algo, int crypt, char *seckey, char *clean_text, char *initVector) {
 
     char *crypt_text = NULL;
+    gcry_error_t err = 0;
+    gcry_cipher_hd_t gcry_hd;
 
+    size_t seckey_len = gcry_cipher_get_algo_keylen(algo);
 
+    err = gcry_cipher_open(&gcry_hd, algo, GCRY_CIPHER_MODE_CBC, GCRY_CIPHER_SECURE);
+    if (err) {
+        fprintf(stderr, "Error to init cipher handle: %s - %s\n", gcry_strerror(err), gcry_strsource(err));
+        return 0;
+    }
+
+    err = gcry_cipher_setkey(gcry_hd, seckey, seckey_len);
+    if (err) {
+        fprintf(stderr, "Error to set secret key: %s - %s\n", gcry_strerror(err), gcry_strsource(err));
+        return 0;
+    }
 
     return crypt_text;
 } /*-*/
