@@ -40,6 +40,7 @@ typedef struct Options {
 
 
 // Function declaration
+char* getSecKey(void);
 Opts* parseCommandLineOpts(int argc, char *argv[]);
 void print_help(void);
 
@@ -50,6 +51,7 @@ void print_help(void);
 int main(int argc, char*argv[]){
      
      Opts *cmd_opts;
+     char *sec_key;
 
      cmd_opts = parseCommandLineOpts(argc, argv);
      printf("\n[*] Program starting...\n");
@@ -64,9 +66,60 @@ int main(int argc, char*argv[]){
      gcry_control (GCRYCTL_INIT_SECMEM, 65536, 0);       // Allocate 64kb of secmem
      gcry_control (GCRYCTL_RESUME_SECMEM_WARN);
      gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);   // Init OK
-     
+
+     // Get secret key
+     printf("[*] Insert secret key to crypt/decrypt file: \n");
+     if ((sec_key = getSecKey()) == NULL) {
+	  fprintf(stderr, "Error in input secret key!\n");
+	  exit(EXIT_FAILURE);
+     }
+
+     printf("%s\n", sec_key);
      return 0;
 } /*-*/
+
+
+
+//
+// 
+char *getSecKey(void) {
+
+     int MAX_BUF = 25, index = 0;
+     char *sec_key = NULL, *tmp_key = NULL, ch;
+
+     // Allocate buffer using gcrypt secure malloc
+     if ((sec_key = (char *) gcry_malloc_secure(sizeof(char) * MAX_BUF)) == NULL) {
+	  fprintf(stderr, "[!] Error to allocate buffer for secure key.\n");
+	  exit(EXIT_FAILURE);
+     }
+
+     while(1) {
+	  
+	  // 0 is stdin
+	  read(0, &ch, sizeof(char) *1);
+
+	  if (ch == EOF || ch == '\n')
+	       break;
+
+	  // Increase buffer
+	  if (index == MAX_BUF) {
+	       
+	       MAX_BUF += 5;
+
+	       if ((tmp_key = (char *) gcry_realloc(sec_key, sizeof(char) * MAX_BUF)) == NULL) {
+		    fprintf(stderr, "[!] Error to allocate buffer for secure key.\n");
+		    exit(EXIT_FAILURE);
+	       }
+	       sec_key = tmp_key;	       
+	  }
+	  
+	  sec_key[index++] = ch;
+     }
+     sec_key[index++] = '\0';
+     
+     return sec_key;
+} /*-*/
+
 
 
 //
