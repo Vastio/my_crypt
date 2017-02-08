@@ -28,6 +28,7 @@
 // MAIN
 int main(int argc, char*argv[]){
 
+  printf("\n[*] Program starting...\n");
   
   return 0;
 } /*-*/

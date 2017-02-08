@@ -16,8 +16,8 @@ ifeq ($(OS_TYPE), Linux)
 	GCRYPT_FLAGS =
 	GCRYPT_LIBS = -lgcrypt
 else ifeq ($(OS_TYPE), Darwin)
-	GCRYPT_FLAGS = -I/usr/local/Cellar/libgcrypt/1.7.0_1/include -I/usr/local/Cellar/libgpg-error/1.22/include
-	GCRYPT_LIBS = -L/usr/local/Cellar/libgcrypt/1.7.0_1/lib -lgcrypt -L/usr/local/Cellar/libgpg-error/1.22/lib -lgpg-error
+	GCRYPT_FLAGS = -I/usr/local/opt/libgcrypt/include -I/usr/local/opt/libgpg-error/include
+	GCRYPT_LIBS = -L/usr/local/opt/libgcrypt/lib -lgcrypt -L/usr/local/opt/libgpg-error/lib -lgpg-error
 endif
 
 ifeq ($(DEBUG), yes)
