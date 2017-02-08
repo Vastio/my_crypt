@@ -28,6 +28,13 @@
 
 #define VERSION "v0.1"
 
+// Parts of gcrypt.h may be excluded by defining these macros
+#define GCRYPT_NO_MPI_MACROS
+#define GCRYPT_NO_DEPRECATED
+
+// Supported Algorythms
+#define AES256 GCRY_CIPHER_AES256
+#define AES256_BLOCK_SIZE 16
 
 
 typedef struct Options {
@@ -43,21 +50,24 @@ typedef struct Options {
 char* getSecKey(void);
 Opts* parseCommandLineOpts(int argc, char *argv[]);
 void print_help(void);
+char* aes256Encrypt(int algo, char *sec_key, char *plain_text);
 
 
 
 //
 // MAIN
-int main(int argc, char*argv[]){
+int main(int argc, char *argv[]) {
      
      Opts *cmd_opts;
-     char *sec_key;
+     char *sec_key, *crypt_text;
+     char *clean_text = "Ciao a tutto il mondo sono criptato";
 
      cmd_opts = parseCommandLineOpts(argc, argv);
      printf("\n[*] Program starting...\n");
-
+     
      //
      // INIT libgcrypt
+     printf("[*] Init libgcrypt...\n");
      if (!gcry_check_version(GCRYPT_VERSION)) {
 	  fprintf(stderr, "[!] Error in libgcrypt: check version error!\n");
 	  exit(EXIT_FAILURE);
@@ -68,14 +78,36 @@ int main(int argc, char*argv[]){
      gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);   // Init OK
 
      // Get secret key
-     printf("[*] Insert secret key to crypt/decrypt file: \n");
+     printf("[<>] Insert secret key to crypt/decrypt file: \n");
      if ((sec_key = getSecKey()) == NULL) {
-	  fprintf(stderr, "Error in input secret key!\n");
+	  fprintf(stderr, "[!] Error in input secret key!\n");
 	  exit(EXIT_FAILURE);
      }
 
-     printf("%s\n", sec_key);
+     if (cmd_opts->encrypt == 1) {
+	  printf("[<>] Encrypt file...\n");
+	  if ((crypt_text = aes256Encrypt(AES256, sec_key, clean_text)) == NULL) {
+	       fprintf(stderr, "[!] Error to encrypt text...\n");
+	       exit(EXIT_FAILURE);
+	  }
+	  printf("Text: %s\n", crypt_text);
+     }
+     else if (cmd_opts->decrypt == 1) {
+	  printf("[<>] Decrypt file...\n");
+     }
+     
      return 0;
+} /*-*/
+
+
+
+//
+// Encrypt plain_text with AES 256 algo
+char* aes256Encrypt(int algo, char *sec_key, char *plain_text) {
+
+     
+     
+     return NULL;
 } /*-*/
 
 
@@ -84,7 +116,7 @@ int main(int argc, char*argv[]){
 // 
 char *getSecKey(void) {
 
-     int MAX_BUF = 25, index = 0;
+int MAX_BUF = 25, index = 0;
      char *sec_key = NULL, *tmp_key = NULL, ch;
 
      // Allocate buffer using gcrypt secure malloc
