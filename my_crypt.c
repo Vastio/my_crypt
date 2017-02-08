@@ -54,13 +54,17 @@ int main(int argc, char*argv[]){
      cmd_opts = parseCommandLineOpts(argc, argv);
      printf("\n[*] Program starting...\n");
 
-     ///
-     /// INIT libgcrypt
+     //
+     // INIT libgcrypt
      if (!gcry_check_version(GCRYPT_VERSION)) {
 	  fprintf(stderr, "[!] Error in libgcrypt: check version error!\n");
 	  exit(EXIT_FAILURE);
      }
-  
+     gcry_control (GCRYCTL_SUSPEND_SECMEM_WARN);         // Suspend warn for secure memory
+     gcry_control (GCRYCTL_INIT_SECMEM, 65536, 0);       // Allocate 64kb of secmem
+     gcry_control (GCRYCTL_RESUME_SECMEM_WARN);
+     gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);   // Init OK
+     
      return 0;
 } /*-*/
 
