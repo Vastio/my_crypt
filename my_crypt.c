@@ -22,12 +22,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <getopt.h>           // For command line options
+#include <gcrypt.h>           // libgcrypt
+
+
+#define VERSION "v0.1"
+
 
 
 typedef struct Options {
-  int algo;             // Algorythm to use default AES256
-  int encrypt;          // 1 Encrypt file, 0 decrypt file
-  char *filename;
+     int algo;             // Algorythm to use default AES256
+     int encrypt;          // Encrypt file
+     int decrypt;          // Deccrypt file 
+     char *filename;
 } Opts;
 
 
@@ -41,35 +48,106 @@ void print_help(void);
 //
 // MAIN
 int main(int argc, char*argv[]){
+     
+     Opts *cmd_opts;
 
-  Opts *cmd_opts;
+     cmd_opts = parseCommandLineOpts(argc, argv);
+     printf("\n[*] Program starting...\n");
 
-  cmd_opts = parseCommandLineOpts(argc, argv);
-  printf("\n[*] Program starting...\n");
+     ///
+     /// INIT libgcrypt
+     if (!gcry_check_version(GCRYPT_VERSION)) {
+	  fprintf(stderr, "[!] Error in libgcrypt: check version error!\n");
+	  exit(EXIT_FAILURE);
+     }
   
-  return 0;
+     return 0;
 } /*-*/
 
 
+//
+// Parse command line options
+Opts* parseCommandLineOpts(int argc, char *argv[]) {
+  
+     int opt = 0;
+     Opts *opts;
+     
+     if ((opts = (struct Options *) malloc(sizeof(struct Options))) == NULL) {
+	  fprintf(stderr, "Error in memory allocation!");
+	  exit(EXIT_FAILURE);
+     }
+     
+     // Setting default options
+     opts->decrypt = 0;
+     opts->encrypt = 1;
+     
+     /** From man page **/
+     
+     // Long options descriptions
+     static struct option longopts[] = {
+	  {"decript", required_argument,  0,  'd'},
+	  {"encrypt", required_argument, 0,   'e'},
+	  {"help",    no_argument, 0,  'h'},
+	  {"version", no_argument,    NULL,   'V'},
+	  {NULL,  0,  NULL,   0}
+     };
 
+     // Short options descriptions
+     char *shortopts = "d:e:hI:V";
+     
+     while ((opt = getopt_long(argc, argv, shortopts, longopts, NULL)) != -1) {
+	  
+	  switch (opt) {
+	  case 'd' :
+	       opts->decrypt = 1;
+	       opts->encrypt = 0;
+	       break;
+	  case 'e' :
+	       // Already defined above
+	       break;
+	  case 'h' :
+	       print_help();
+	       break;
+	  case 'V' :
+	       printf("\n%s %s\n\n", argv[0], VERSION);
+	       exit(EXIT_SUCCESS);
+	       break;
+	  default :
+	       print_help();
+	  }
+     }
+     
+     if (optind < argc) {
+	  // Allocate space for filename
+	  int num = optind++;
+	  if ((opts->filename = (char *) malloc(sizeof(char *) * strlen(argv[num]) + 1)) == NULL) {
+	       fprintf(stderr, "Error in memory allocation!");
+	       exit(EXIT_FAILURE);
+	  }
+	  strncat(opts->filename, argv[num], (size_t) sizeof(opts->filename));
+     }
+     else
+	  print_help();
+     
+     return opts;
+} /*-*/
 
 
 
 //
 // Print help and exit
 void print_help(void) {
-
-  printf("\nUsage : my_crypt [opts] filename\n\n"
-	 "Options: \n"
-	 "   -d | --decrypt:         set decryption file.\n"
-	 "   -e | --encrypt ALGO:    set algorythm to encrypt file.\n"
-	 "   -h | --help:            print help and exit.\n"
-	 "   -I | --init-vector:     define an inizialization vector. ToDo\n"
-	 "   -k | --key:             generate key to decrypt file. ToDo\n"
-	 "   -V | --version:         print version and exit.\n\n"
-	 "Supported algorythms: AES256.\n\n"
-	 "\n"
-	 );
-
-    exit(EXIT_SUCCESS);
+     
+     printf("\nUsage : my_crypt [opts] filename\n\n"
+	    "Options: \n"
+	    "   -d | --decrypt:         set decryption file.\n"
+	    "   -e | --encrypt ALGO:    set algorythm to encrypt file.\n"
+	    "   -h | --help:            print help and exit.\n"
+	    "   -I | --init-vector:     define an inizialization vector. ToDo\n"
+	    "   -V | --version:         print version and exit.\n\n"
+	    "Supported algorythms: AES256.\n\n"
+	    "\n"
+	  );
+     
+     exit(EXIT_SUCCESS);
 } /*-*/
