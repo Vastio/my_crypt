@@ -24,12 +24,52 @@
 #include <errno.h>
 
 
+typedef struct Options {
+  int algo;             // Algorythm to use default AES256
+  int encrypt;          // 1 Encrypt file, 0 decrypt file
+  char *filename;
+} Opts;
+
+
+
+// Function declaration
+Opts* parseCommandLineOpts(int argc, char *argv[]);
+void print_help(void);
+
+
+
 //
 // MAIN
 int main(int argc, char*argv[]){
 
+  Opts *cmd_opts;
+
+  cmd_opts = parseCommandLineOpts(argc, argv);
   printf("\n[*] Program starting...\n");
   
   return 0;
 } /*-*/
 
+
+
+
+
+
+//
+// Print help and exit
+void print_help(void) {
+
+  printf("\nUsage : my_crypt [opts] filename\n\n"
+	 "Options: \n"
+	 "   -d | --decrypt:         set decryption file.\n"
+	 "   -e | --encrypt ALGO:    set algorythm to encrypt file.\n"
+	 "   -h | --help:            print help and exit.\n"
+	 "   -I | --init-vector:     define an inizialization vector. ToDo\n"
+	 "   -k | --key:             generate key to decrypt file. ToDo\n"
+	 "   -V | --version:         print version and exit.\n\n"
+	 "Supported algorythms: AES256.\n\n"
+	 "\n"
+	 );
+
+    exit(EXIT_SUCCESS);
+} /*-*/
