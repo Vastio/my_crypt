@@ -94,6 +94,9 @@ int main(int argc, char *argv[]) {
      else if (cmd_opts->decrypt == 1) {
 	  printf("[<>] Decrypt file...\n");
      }
+
+     free(sec_key);
+     free(cmd_opts);
      
      return 0;
 } /*-*/
@@ -109,25 +112,46 @@ char* aes256Encrypt(int algo, char *sec_key, char *plain_text) {
      gcry_cipher_hd_t hd;
      size_t key_len =  gcry_cipher_get_algo_keylen(algo);
      size_t blk_len = gcry_cipher_get_algo_blklen(algo);
-     unsigned char init_vector[blk_len];
+     unsigned char init_vector[blk_len], *cipher_text;
 
+     // Open handle for gcrypt
      err = gcry_cipher_open(&hd, algo, GCRY_CIPHER_MODE_CBC, GCRY_CIPHER_CBC_CTS);
      if (err) {
 	  fprintf(stderr, "[!] Failure cipher_open %s/%s\n", gcry_strsource(err), gcry_strerror(err));
 	  return NULL;
      }
-     
+
+     // Add secret key
      err = gcry_cipher_setkey(hd, sec_key, key_len);  
      if (err) {
 	  fprintf(stderr, "[!] Failure cipher_setkey %s/%s\n", gcry_strsource(err), gcry_strerror(err));
 	  return NULL;
      }
 
+     // Calc and set Init vector
+     gcry_create_nonce(init_vector, blk_len);
+
+     err = gcry_cipher_setiv(hd, init_vector, blk_len);
+     if (err) {
+	  fprintf(stderr, "[!] Failure cipher_setiv %s/%s\n", gcry_strsource(err), gcry_strerror(err));
+	  return NULL;
+     }
+
+     // Allocate buffer for cipher text
+     if ((cipher_text = (unsigned char *) malloc(sizeof(unsigned char) * ((strlen(plain_text) + 1) * blk_len))) == NULL) {
+	  fprintf(stderr, "[!] Error to allocate memory for cipher text.\n");
+	  exit(EXIT_FAILURE);
+     }
      
-     
+     err = gcry_cipher_encrypt(hd, cipher_text, blk_len * strlen(plain_text), plain_text, strlen(plain_text));
+     if (err) {
+	  fprintf(stderr, "[!] Failure cipher_encrypt %s/%s\n", gcry_strsource(err), gcry_strerror(err));
+	  return NULL;
+     }
+      
      gcry_cipher_close(hd);
      
-     return NULL;
+     return (char*) cipher_text;
 } /*-*/
 
 
