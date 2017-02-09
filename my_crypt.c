@@ -86,10 +86,9 @@ int main(int argc, char *argv[]) {
 
      if (cmd_opts->encrypt == 1) {
 	  printf("[<>] Encrypt file...\n");
-	  if ((crypt_text = aes256Encrypt(AES256, sec_key, clean_text)) == NULL) {
-	       fprintf(stderr, "[!] Error to encrypt text...\n");
+	  if ((crypt_text = aes256Encrypt(AES256, sec_key, clean_text)) == NULL)
 	       exit(EXIT_FAILURE);
-	  }
+	  
 	  printf("Text: %s\n", crypt_text);
      }
      else if (cmd_opts->decrypt == 1) {
@@ -103,9 +102,30 @@ int main(int argc, char *argv[]) {
 
 //
 // Encrypt plain_text with AES 256 algo
+// Manual: https://gnupg.org/documentation/manuals/gcrypt/Working-with-cipher-handles.html#Working-with-cipher-handles
 char* aes256Encrypt(int algo, char *sec_key, char *plain_text) {
 
+     gcry_error_t err;
+     gcry_cipher_hd_t hd;
+     size_t key_len =  gcry_cipher_get_algo_keylen(algo);
+     size_t blk_len = gcry_cipher_get_algo_blklen(algo);
+     unsigned char init_vector[blk_len];
+
+     err = gcry_cipher_open(&hd, algo, GCRY_CIPHER_MODE_CBC, GCRY_CIPHER_CBC_CTS);
+     if (err) {
+	  fprintf(stderr, "[!] Failure cipher_open %s/%s\n", gcry_strsource(err), gcry_strerror(err));
+	  return NULL;
+     }
      
+     err = gcry_cipher_setkey(hd, sec_key, key_len);  
+     if (err) {
+	  fprintf(stderr, "[!] Failure cipher_setkey %s/%s\n", gcry_strsource(err), gcry_strerror(err));
+	  return NULL;
+     }
+
+     
+     
+     gcry_cipher_close(hd);
      
      return NULL;
 } /*-*/
