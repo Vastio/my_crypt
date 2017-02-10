@@ -89,14 +89,14 @@ int main(int argc, char *argv[]) {
 	  if ((crypt_text = aes256Encrypt(AES256, sec_key, clean_text)) == NULL)
 	       exit(EXIT_FAILURE);
 	  
-	  printf("Text: %s\n", crypt_text);
+	  printf("[I] Text: %s\n", crypt_text);
      }
      else if (cmd_opts->decrypt == 1) {
 	  printf("[<>] Decrypt file...\n");
      }
 
-     free(sec_key);
-     free(cmd_opts);
+     //free(sec_key);
+     //free(cmd_opts);
      
      return 0;
 } /*-*/
